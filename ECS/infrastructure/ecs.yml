@@ -1,0 +1,191 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates ECS infrastructure
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment name - dev or prod
+    Default: dev
+    AllowedValues: [dev, prod]
+    ConstraintDescription: Specify either dev or prod
+  TagPrefix:
+    Type: String
+    Description: Enter Prefix that should be used for Tags.
+    Default: MyApp
+  EcrUri:
+    Type: String
+    Description: Uri of the ECR Repository (e. g. ACCOUNTID.dkr.ecr.REGION.amazonaws.com/REPOSITORY)
+  Image:
+    Type: String
+    Description: The image to use for a container (e. g. image:tag)
+    Default: image:latest
+  CMD:
+    Type: String
+    Description: The CMD value to pass to the container
+  LoadBalancerName:
+    Type: String
+    Description: The Name of the Load Balancer
+  LoadBalancerId:
+    Type: String
+    Description: The Id of the Load Balancer
+  TargetGroupName:
+    Type: String
+    Description: The Name of the Target Group
+  TargetGroupId:
+    Type: String
+    Description: The Id of the Target Group
+  TargetGroupArn:
+    Type: String
+    Description: The Arn of the Target Group
+  DefaultTaskDesiredContainerCount:
+    Type: Number
+    Description: The desired count of Tasks
+    MinValue: 0
+    MaxValue: 100
+    Default: 0
+  DefaultTaskMinContainerCount:
+    Type: Number
+    Description: The min count of Tasks
+    MinValue: 0
+    MaxValue: 100
+    Default: 0
+  DefaultTaskMaxContainerCount:
+    Type: Number
+    Description: The max count of Tasks
+    MinValue: 0
+    MaxValue: 100
+    Default: 5
+  AutScalingTargetValue:
+    Type: Number
+    Description: The target value for the AutoScaling Metric ALBRequestCountPerTarget
+    MinValue: 1
+    MaxValue: 100
+    Default: 5
+
+Resources:
+  ECSCluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: !Sub ${TagPrefix}-${EnvironmentName}
+
+  TaskDefinition:
+    Type: "AWS::ECS::TaskDefinition"
+    DependsOn: [ECSCluster]
+    Properties:
+      Family: !Sub ${TagPrefix}-${EnvironmentName}
+      ContainerDefinitions:
+        -
+          Name: !Sub ${TagPrefix}-${EnvironmentName}
+          Image: !Join ["/", [ !Ref EcrUri, !Ref Image]]
+          Command:
+            -
+                !Sub
+              - |
+                ${CMD}
+              - CMD: !Ref CMD
+          DockerLabels:
+            Tag: !Join [" / ", [!Sub "${TagPrefix}-${EnvironmentName}",!Sub "${Image}"]]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref EnvironmentName
+              awslogs-stream-prefix: !Ref TagPrefix
+          Memory: 128
+          PortMappings:
+            -
+              ContainerPort: 8080
+              HostPort: 8080
+              Protocol: HTTP
+
+  Service:
+    Type: "AWS::ECS::Service"
+    DependsOn: [TaskDefinition]
+    Properties:
+      ServiceName: !Sub ${TagPrefix}-${EnvironmentName}
+      Cluster: !Ref ECSCluster
+      LaunchType: EC2
+      LoadBalancers:
+        -
+          ContainerName: !Sub ${TagPrefix}-${EnvironmentName}
+          ContainerPort: 8080
+          TargetGroupArn: !Ref TargetGroupArn
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: !Ref DefaultTaskDesiredContainerCount
+      DeploymentConfiguration:
+        MaximumPercent: 150
+        MinimumHealthyPercent: 75
+      HealthCheckGracePeriodSeconds: 30
+
+  ServiceAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-${TagPrefix}-ECS-AutoScaling-Role"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: application-autoscaling.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: service-autoscaling
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - application-autoscaling:*
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:PutMetricAlarm
+                  - ecs:DescribeServices
+                  - ecs:UpdateService
+                Resource: '*'
+
+  ServiceScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: [Service, ServiceAutoScalingRole]
+    Properties:
+      MinCapacity: !Ref DefaultTaskMinContainerCount
+      MaxCapacity: !Ref DefaultTaskMaxContainerCount
+      ResourceId: !Join ["/", ["service", !Ref ECSCluster, !GetAtt Service.Name]]
+      RoleARN: !GetAtt ServiceAutoScalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  ServiceAutoScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: ServiceScalingTarget
+    Properties:
+      PolicyName: AutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ServiceScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ALBRequestCountPerTarget
+          ResourceLabel: !Sub "app/${LoadBalancerName}/${LoadBalancerId}/targetgroup/${TargetGroupName}/${TargetGroupId}"
+        TargetValue: !Ref AutScalingTargetValue
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+
+Outputs:
+  Arn:
+    Description: "The Arn of the ECS cluster"
+    Value: !GetAtt ECSCluster.Arn
+  Name:
+    Description: "The Name of the ECS cluster"
+    Value: !Ref ECSCluster
+  TaskDefinition:
+    Description: The Arn of the TaskDefinition
+    Value: !Ref TaskDefinition
+  ServiceArn:
+    Description: The Arn of the Service
+    Value: !Ref Service
+  ServiceName:
+    Description: The Name of the Service
+    Value: !GetAtt Service.Name
+  ServiceAutoScalingRoleArn:
+    Description: The Arn of the IAM Role for AutoScaling
+    Value: !Ref ServiceAutoScalingRole
+  ServiceAutoScalingPolicyArn:
+    Description: The Arn of the AutoScalingPolicy
+    Value: !Ref ServiceAutoScalingPolicy

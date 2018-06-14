@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates EC2 infrastructure
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment name - dev or prod
+    Default: dev
+    AllowedValues: [dev, prod]
+    ConstraintDescription: Specify either dev or prod
+  TagPrefix:
+    Type: String
+    Description: Enter Prefix that should be used for Tags.
+    Default: MyApp
+  PublicSubnet1:
+    Type: String
+    Description: Subnet Id (e. g. subnet-xxx...)
+  PublicSubnet2:
+    Type: String
+    Description: Subnet Id (e. g. subnet-xxx...)
+  SecurityGroup:
+    Type: String
+    Description: Security Group Id (e. g. sg-xxx...)
+  VPCId:
+    Type: String
+    Description: VPC Id (e. g. vpc-xxx...)
+
+Resources:
+  ALB:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Type: application
+      Name: !Sub ${TagPrefix}-${EnvironmentName}-ALB
+      Scheme: internet-facing
+      Subnets: [!Ref PublicSubnet1, !Ref PublicSubnet2]
+      SecurityGroups: [!Ref SecurityGroup]
+      Tags:
+        - Key: Name
+          Value: !Sub ${TagPrefix}-${EnvironmentName}-ALB
+
+  TargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    DependsOn: [ALB]
+    Properties:
+      Name: !Sub ${TagPrefix}-${EnvironmentName}-TG
+      VpcId: !Ref VPCId
+      Port: 8080
+      Protocol: HTTP
+      Matcher:
+        HttpCode: 200-210
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 6
+      UnhealthyThresholdCount: 3
+      TargetType: instance
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 300
+        - Key: slow_start.duration_seconds
+          Value: 30
+        - Key: stickiness.enabled
+          Value: true
+
+  Listener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    DependsOn: [TargetGroup]
+    Properties:
+      DefaultActions:
+        -
+          Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref ALB
+      Port: 8080
+      Protocol: HTTP
+
+Outputs:
+  LoadBalancerArn:
+    Description: "Arn of the Load Balancer"
+    Value: !Ref ALB
+  LoadBalancerDNSName:
+    Description: "DNS name of the Load Balancer"
+    Value: !GetAtt ALB.DNSName
+  LoadBalancerName:
+    Description: "Name of the Load Balancer"
+    Value: !GetAtt ALB.LoadBalancerName
+  SecurityGroupsALB:
+    Description: "Security Groups attached to the Load Balancer"
+    Value: !Join
+      - ", "
+      - !GetAtt ALB.SecurityGroups
+  TargetGroupArn:
+    Description: "Arn of the TargetGroup attached to the Load Balancer"
+    Value: !Ref TargetGroup
+  TargetGroupName:
+    Description: "Name of the TargetGroup attached to the Load Balancer"
+    Value: !GetAtt TargetGroup.TargetGroupName
+  TargetGroupLoadBalancerArns:
+    Description: "A list of ARNs of the load balancers"
+    Value: !Join
+      - ", "
+      - !GetAtt TargetGroup.LoadBalancerArns
+  ListenerArn:
+    Description: "Arn of the Listener attached to th Load Balancer"
+    Value: !Ref Listener

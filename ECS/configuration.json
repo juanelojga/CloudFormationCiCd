@@ -1,0 +1,42 @@
+[
+  {
+  "ParameterKey": "EnvironmentName",
+  "ParameterValue": "dev"
+  },
+  {
+  "ParameterKey": "TagPrefix",
+  "ParameterValue": "MyApp"
+  },
+  {
+    "ParameterKey": "EcrRepositoryName",
+    "ParameterValue": "simple-app"
+  },
+  {
+    "ParameterKey": "'EcrDaysToRetainUntaggedContainerImages",
+    "ParameterValue": "7"
+  },
+  {
+    "ParameterKey": "'EcrMaxTaggedContainerImagesToRetain",
+    "ParameterValue": "20"
+  },
+  {
+    "ParameterKey": "'EcrIamUserName",
+    "ParameterValue": "nbaeumer"
+  },
+  {
+    "ParameterKey": "'EcrIamUserName",
+    "ParameterValue": "nbaeumer"
+  },
+  {
+  "ParameterKey": "VPCCIDR",
+  "ParameterValue": "172.21.1.0/24"
+  },
+  {
+  "ParameterKey": "PublicSubnet1",
+  "ParameterValue": "172.21.1.0/26"
+  },
+  {
+  "ParameterKey": "PublicSubnet2",
+  "ParameterValue": "172.21.1.64/26"
+  }
+]

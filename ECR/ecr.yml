@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ECR Repository
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Default"
+        Parameters:
+          - EnvironmentName
+      - Label:
+          default: "ECR"
+        Parameters:
+          - EcrRepositoryName
+          - EcrDaysToRetainUntaggedContainerImages
+          - EcrMaxTaggedContainerImagesToRetain
+          - EcrIamUserName
+    ParameterLabels:
+      EcrRepositoryName:
+        default: "1. Repository name"
+      EcrDaysToRetainUntaggedContainerImages:
+        default: "2. Days"
+      EcrMaxTaggedContainerImagesToRetain:
+        default: "3. Container image count"
+      EcrIamUserName:
+        default: "4. IAM Username"
+
+Parameters:
+  RepositoryName:
+    Type: String
+    AllowedPattern: "(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*"
+    Description: Name of the ECR Repository
+    Default: "myapp/repo"
+  DaysToRetainUntaggedContainerImages:
+    Type: Number
+    Description: The number days to retain untagged container images before expiring
+    MinValue: 1
+    MaxValue: 100
+    ConstraintDescription: Value must be between 1 and 100
+    Default: 7
+  MaxTaggedContainerImagesToRetain:
+    Type: Number
+    Description: The number of tagged container images to retain before expiring
+    MinValue: 1
+    MaxValue: 100
+    ConstraintDescription: Value must be between 1 and 100
+    Default: 20
+  EnvironmentName:
+    Type: String
+    Description: Environment name - dev or prod
+    Default: dev
+    AllowedValues: [dev, prod]
+    ConstraintDescription: Specify either dev or prod
+  IamUserName:
+    Type: String
+    Description: Name of the ECR IAMUser Admin
+    Default: "nbaeumer"
+
+Resources:
+  Repository:
+    Type: "AWS::ECR::Repository"
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      LifecyclePolicy:
+        LifecyclePolicyText: !Sub
+          - |
+            {
+              "rules": [
+                {
+                  "rulePriority": 1,
+                  "description": "Only keep untagged images for ${DaysToRetainUntaggedContainerImages} days",
+                  "selection": {
+                    "tagStatus": "untagged",
+                    "countType": "sinceImagePushed",
+                    "countUnit": "days",
+                    "countNumber": ${DaysToRetainUntaggedContainerImages}
+                  },
+                  "action": { "type": "expire" }
+                },
+                {
+                  "rulePriority": 2,
+                  "description": "Keep only ${MaxTaggedContainerImagesToRetain} tagged images, expire all others",
+                  "selection": {
+                    "tagStatus": "tagged",
+                    "tagPrefixList": [ "${EnvironmentName}" ],
+                    "countType": "imageCountMoreThan",
+                    "countNumber": ${MaxTaggedContainerImagesToRetain}
+                  },
+                  "action": { "type": "expire" }
+                }
+              ]
+            }
+          - DaysToRetainUntaggedContainerImages: !Ref DaysToRetainUntaggedContainerImages
+            MaxTaggedContainerImagesToRetain: !Ref MaxTaggedContainerImagesToRetain
+            EnvironmentName: !Ref EnvironmentName
+      RepositoryPolicyText:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Sid: AllowPushPull
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub "arn:aws:iam::${AWS::AccountId}:user/${IamUserName}"
+            Action:
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:PutImage"
+              - "ecr:InitiateLayerUpload"
+              - "ecr:UploadLayerPart"
+              - "ecr:CompleteLayerUpload"
+
+Outputs:
+  Name:
+    Description: "Name of the ECR Repository"
+    Value: !Ref Repository
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", Name ] ]
+  Arn:
+    Description: "Arn of the ECR Repository"
+    Value: !GetAtt Repository.Arn
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", Arn ] ]
+  Uri:
+    Description: "Uri of the ECR Repository"
+    Value: !Sub "${AWS::AccountId}.dkr.ecr${AWS::Region}.amazonaws.com/${Repository}"
+    Export:
+      Name: !Join [ "-", [ !Ref "AWS::StackName", Uri ] ]

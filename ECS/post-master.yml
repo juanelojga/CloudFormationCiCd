@@ -1,0 +1,227 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Master template
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Default
+      Parameters:
+      - EnvironmentName
+      - TagPrefix
+    - Label:
+        default: VPC
+      Parameters:
+      - VpcCIDR
+      - VpcPublicSubnet1
+      - VpcPublicSubnet2
+    - Label:
+        default: ECR
+      Parameters:
+      - EcrUri
+    - Label:
+        default: ECS
+      Parameters:
+      - EcsImage
+      - EcsCMD
+      - EcsDefaultTaskDesiredContainerCount
+      - EcsDefaultTaskMinContainerCount
+      - EcsDefaultTaskMaxContainerCount
+      - EcsAutScalingTargetValue
+    ParameterLabels:
+      EcrUri:
+        default: 1. ECR Repository Uri
+      EcsAutScalingTargetValue:
+        default: 6. Scaling Target Value
+      EcsCMD:
+        default: 2. ECS CMD
+      EcsDefaultTaskDesiredContainerCount:
+        default: 3. Desired Task Count
+      EcsDefaultTaskMaxContainerCount:
+        default: 5. Max Task Count
+      EcsDefaultTaskMinContainerCount:
+        default: 4. Min Task Count
+      EcsImage:
+        default: 1. Image for the container
+      EnvironmentName:
+        default: Environment
+      TagPrefix:
+        default: Tag Prefix
+      VpcCIDR:
+        default: 1. VPC CDIR
+      VpcPublicSubnet1:
+        default: 2. Public Subnet 1 - AZ1
+      VpcPublicSubnet2:
+        default: 3. Public Subnet 2 - AZ2
+Outputs:
+  LoadBalancerDNSName:
+    Description: DNS name of the Load Balancer
+    Value:
+      Fn::GetAtt:
+      - EC2
+      - Outputs.LoadBalancerDNSName
+Parameters:
+  EcrUri:
+    Description: Uri of the ECR Repository (e. g. ACCOUNTID.dkr.ecr.REGION.amazonaws.com/REPOSITORY)
+    Type: String
+  EcsAutScalingTargetValue:
+    Default: 5
+    Description: The target value for the AutoScaling Metric ALBRequestCountPerTarget
+    MaxValue: 100
+    MinValue: 1
+    Type: Number
+  EcsCMD:
+    Description: The CMD value to pass to the container
+    Type: String
+  EcsDefaultTaskDesiredContainerCount:
+    Default: 0
+    Description: The desired count of Tasks
+    MaxValue: 100
+    MinValue: 0
+    Type: Number
+  EcsDefaultTaskMaxContainerCount:
+    Default: 5
+    Description: The max count of Tasks
+    MaxValue: 100
+    MinValue: 0
+    Type: Number
+  EcsDefaultTaskMinContainerCount:
+    Default: 0
+    Description: The min count of Tasks
+    MaxValue: 100
+    MinValue: 0
+    Type: Number
+  EcsImage:
+    Default: my_app_repo:latest
+    Description: The image to use for a container (e. g. image:tag)
+    Type: String
+  EnvironmentName:
+    AllowedValues:
+    - dev
+    - prod
+    ConstraintDescription: Specify either dev or prod
+    Default: dev
+    Description: Environment name - dev or prod
+    Type: String
+  TagPrefix:
+    Default: MyApp
+    Description: Enter Prefix that should be used for Tags.
+    Type: String
+  VpcCIDR:
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{2})
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x. (e.g.
+      172.21.1.0/24)
+    Default: 172.21.1.0/24
+    Description: CIDR block should be used to create the VPC (e.g. 172.21.1.0/24)
+    Type: String
+  VpcPublicSubnet1:
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{2})
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x. (e.g.
+      172.21.1.0/26)
+    Default: 172.21.1.0/26
+    Description: CIDR block should be used to create the public subnet in AZ1 (e.g.
+      172.21.1.0/26)
+    Type: String
+  VpcPublicSubnet2:
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{2})
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x. (e.g.
+      172.21.1.64/26)
+    Default: 172.21.1.64/26
+    Description: CIDR block should be used to create the public subnet in AZ1 (e.g.
+      172.21.1.64/26)
+    Type: String
+Resources:
+  EC2:
+    DependsOn:
+    - VPC
+    Properties:
+      Parameters:
+        EnvironmentName:
+          Ref: EnvironmentName
+        PublicSubnet1:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PublicSubnet1
+        PublicSubnet2:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.PublicSubnet2
+        SecurityGroup:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.SecurityGroupId
+        TagPrefix:
+          Ref: TagPrefix
+        VPCId:
+          Fn::GetAtt:
+          - VPC
+          - Outputs.VPCID
+      TemplateURL: https://s3.amazonaws.com/cf-templates-1j6auxe2hqnis-eu-west-1/b187b60066a22f198912f53037ae6a53.template
+    Type: AWS::CloudFormation::Stack
+  ECS:
+    DependsOn:
+    - EC2
+    Properties:
+      Parameters:
+        AutScalingTargetValue:
+          Ref: EcsAutScalingTargetValue
+        CMD:
+          Ref: EcsCMD
+        DefaultTaskDesiredContainerCount:
+          Ref: EcsDefaultTaskDesiredContainerCount
+        DefaultTaskMaxContainerCount:
+          Ref: EcsDefaultTaskMaxContainerCount
+        DefaultTaskMinContainerCount:
+          Ref: EcsDefaultTaskMinContainerCount
+        EcrUri:
+          Ref: EcrUri
+        EnvironmentName:
+          Ref: EnvironmentName
+        Image:
+          Ref: EcsImage
+        LoadBalancerId:
+          Fn::Select:
+          - 2
+          - Fn::Split:
+            - /
+            - Fn::GetAtt:
+              - EC2
+              - Outputs.LoadBalancerArn
+        LoadBalancerName:
+          Fn::GetAtt:
+          - EC2
+          - Outputs.LoadBalancerName
+        TagPrefix:
+          Ref: TagPrefix
+        TargetGroupArn:
+          Fn::GetAtt:
+          - EC2
+          - Outputs.TargetGroupArn
+        TargetGroupId:
+          Fn::Select:
+          - 2
+          - Fn::Split:
+            - /
+            - Fn::GetAtt:
+              - EC2
+              - Outputs.TargetGroupArn
+        TargetGroupName:
+          Fn::GetAtt:
+          - EC2
+          - Outputs.TargetGroupName
+      TemplateURL: https://s3.amazonaws.com/cf-templates-1j6auxe2hqnis-eu-west-1/e9f9dac3ed9d52abf7e92578bed77bfe.template
+    Type: AWS::CloudFormation::Stack
+  VPC:
+    Properties:
+      Parameters:
+        EnvironmentName:
+          Ref: EnvironmentName
+        PublicSubnet1:
+          Ref: VpcPublicSubnet1
+        PublicSubnet2:
+          Ref: VpcPublicSubnet2
+        TagPrefix:
+          Ref: TagPrefix
+        VPCCIDR:
+          Ref: VpcCIDR
+      TemplateURL: https://s3.amazonaws.com/cf-templates-1j6auxe2hqnis-eu-west-1/811f4ac5e7c3a37c3837e51e3229ceb2.template
+    Type: AWS::CloudFormation::Stack
