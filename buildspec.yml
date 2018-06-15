@@ -2,10 +2,10 @@ version: 0.2
 
 env:
   variables:
-    S3_TEMPLATE_BUCKET: cf-templates-1j6auxe2hqnis-eu-west-1
-    STACK-NAME: ECS-Cluster-Simple-App
-    TEMPLATE-FILE: ECS/master.yml
-    CONFIG-FILE: ECS/configuration.json
+    S3_TEMPLATE_BUCKET: "cf-templates-1j6auxe2hqnis-eu-west-1"
+    STACK-NAME: "ECS-Cluster-Simple-App"
+    TEMPLATE-FILE: "ECS/master.yml"
+    CONFIG-FILE: "ECS/configuration.json"
 
 phases:
   install:
