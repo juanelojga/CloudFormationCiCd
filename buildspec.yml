@@ -16,14 +16,16 @@ phases:
   pre_build:
     commands:
       - echo Validating CFN template file... `date`
-      #- aws cloudformation validate-template --template-body file://$TEMPLATE_FILE
+      - aws cloudformation validate-template --template-body file://$TEMPLATE_FILE
       - echo Validatig CFN parameters configfile... `date`
       - jsonlint -q $CONFIG_FILE
   build:
-    commands:
+   commands:
       - echo Package CFN template file... `date`
-      - aws cloudformation package --template-file $TEMPLATE_FILE --s3-bucket $S3_TEMPLATE_BUCKET --s3-prefix $STACK_NAME-$_VERSION --output-template-file template.yml
+      #- aws cloudformation package --template-file $TEMPLATE_FILE --s3-bucket $S3_TEMPLATE_BUCKET --s3-prefix $STACK_NAME-$_VERSION --output-template-file template.yml
 
 artifacts:
   files:
     - template.yml
+    - ECS/configuration.json
+  discard-paths: yes
