@@ -1,1 +1,31 @@
 version: 0.2
+
+env:
+  variables:
+    S3_TEMPLATE_BUCKET: cf-templates-1j6auxe2hqnis-eu-west-1
+    STACK-NAME: ECS-Cluster-Simple-App
+    TEMPLATE-FILE: ECS/master.yml
+    CONFIG-FILE: ECS/configuration.json
+
+phases:
+  install:
+    commands:
+      - echo Install dependencies - `date`
+      - npm install jsonlint -g
+  pre_build:
+    commands:
+      - echo Validating CFN template file $TEMPLATE-FILE - `date`
+      - aws cloudformation validate-template --template-body file://$TEMPLATE-FILE
+      - echo Validatig CFN parameters configfile $CONFIG-FILE - `date`
+      - jsonlint -q $CONFIG-FILE
+  build:
+    commands:
+      - echo Package CFN template file template.yml - `date`
+      - aws cloudformation package \
+          --template-file $TEMPLATE-FILE \
+          --s3-bucket $S3_TEMPLATE_BUCKET \
+          --output-template-file template.yml
+
+artifacts:
+  files:
+    - template.yml
