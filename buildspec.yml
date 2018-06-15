@@ -10,17 +10,17 @@ env:
 phases:
   install:
     commands:
-      - echo Install dependencies...
+      - echo "Install dependencies..."
       - npm install jsonlint -g
   pre_build:
     commands:
-      - echo Validating CFN template file...
+      - echo "Validating CFN template file..."
       - aws cloudformation validate-template --template-body file://$TEMPLATE-FILE
-      - echo Validatig CFN parameters configfile...
+      - echo "Validatig CFN parameters configfile..."
       - jsonlint -q $CONFIG-FILE
   build:
     commands:
-      - echo Package CFN template file...
+      - echo "Package CFN template file..."
       - aws cloudformation package \
           --template-file $TEMPLATE-FILE \
           --s3-bucket $S3_TEMPLATE_BUCKET \
