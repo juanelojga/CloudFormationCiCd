@@ -1,42 +1,50 @@
 [
   {
+  "ParameterKey": "EcrUri",
+  "ParameterValue": "196987642544.dkr.ecreu-west-1.amazonaws.com/simple-app/repo"
+  },
+  {
+  "ParameterKey": "EcsAutScalingTargetValue",
+  "ParameterValue": "5"
+  },
+  {
+  "ParameterKey": "EcsCMD",
+  "ParameterValue": "/app"
+  }, 
+  {
+  "ParameterKey": "EcsDefaultTaskDesiredContainerCount",
+  "ParameterValue": "0"
+  },
+  {
+  "ParameterKey": "EcsDefaultTaskMaxContainerCount",
+  "ParameterValue": "5"
+  },
+  {
+  "ParameterKey": "EcsDefaultTaskMinContainerCount",
+  "ParameterValue": "0"
+  },
+  {
+  "ParameterKey": "EcsImage",
+  "ParameterValue": "simple-app/repo:latest"
+  },
+  {
   "ParameterKey": "EnvironmentName",
   "ParameterValue": "dev"
   },
   {
   "ParameterKey": "TagPrefix",
-  "ParameterValue": "MyApp"
+  "ParameterValue": "SimpleApp"
   },
   {
-    "ParameterKey": "EcrRepositoryName",
-    "ParameterValue": "simple-app"
-  },
-  {
-    "ParameterKey": "'EcrDaysToRetainUntaggedContainerImages",
-    "ParameterValue": "7"
-  },
-  {
-    "ParameterKey": "'EcrMaxTaggedContainerImagesToRetain",
-    "ParameterValue": "20"
-  },
-  {
-    "ParameterKey": "'EcrIamUserName",
-    "ParameterValue": "nbaeumer"
-  },
-  {
-    "ParameterKey": "'EcrIamUserName",
-    "ParameterValue": "nbaeumer"
-  },
-  {
-  "ParameterKey": "VPCCIDR",
+  "ParameterKey": "VpcCIDR",
   "ParameterValue": "172.21.1.0/24"
   },
   {
-  "ParameterKey": "PublicSubnet1",
+  "ParameterKey": "VpcPublicSubnet1",
   "ParameterValue": "172.21.1.0/26"
   },
   {
-  "ParameterKey": "PublicSubnet2",
+  "ParameterKey": "VpcPublicSubnet2",
   "ParameterValue": "172.21.1.64/26"
   }
 ]

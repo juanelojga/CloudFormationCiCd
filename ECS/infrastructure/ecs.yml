@@ -5,20 +5,17 @@ Parameters:
   EnvironmentName:
     Type: String
     Description: Environment name - dev or prod
-    Default: dev
     AllowedValues: [dev, prod]
     ConstraintDescription: Specify either dev or prod
   TagPrefix:
     Type: String
     Description: Enter Prefix that should be used for Tags.
-    Default: MyApp
   EcrUri:
     Type: String
     Description: Uri of the ECR Repository (e. g. ACCOUNTID.dkr.ecr.REGION.amazonaws.com/REPOSITORY)
   Image:
     Type: String
     Description: The image to use for a container (e. g. image:tag)
-    Default: image:latest
   CMD:
     Type: String
     Description: The CMD value to pass to the container

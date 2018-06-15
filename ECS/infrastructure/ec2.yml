@@ -5,13 +5,11 @@ Parameters:
   EnvironmentName:
     Type: String
     Description: Environment name - dev or prod
-    Default: dev
     AllowedValues: [dev, prod]
     ConstraintDescription: Specify either dev or prod
   TagPrefix:
     Type: String
     Description: Enter Prefix that should be used for Tags.
-    Default: MyApp
   PublicSubnet1:
     Type: String
     Description: Subnet Id (e. g. subnet-xxx...)

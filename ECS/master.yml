@@ -59,32 +59,32 @@ Parameters:
   EnvironmentName:
     Type: String
     Description: Environment name - dev or prod
-    Default: dev
+#    Default: dev
     AllowedValues: [dev, prod]
     ConstraintDescription: Specify either dev or prod
   TagPrefix:
     Type: String
     Description: Enter Prefix that should be used for Tags.
-    Default: MyApp
+#    Default: MyApp
   # VPC
   VpcCIDR:
     Type: String
     Description: CIDR block should be used to create the VPC (e.g. 172.21.1.0/24)
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{2})"
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x. (e.g. 172.21.1.0/24)
-    Default: 172.21.1.0/24
+#    Default: 172.21.1.0/24
   VpcPublicSubnet1:
     Type: String
     Description: CIDR block should be used to create the public subnet in AZ1 (e.g. 172.21.1.0/26)
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{2})"
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x. (e.g. 172.21.1.0/26)
-    Default: 172.21.1.0/26
+#    Default: 172.21.1.0/26
   VpcPublicSubnet2:
     Type: String
     Description: CIDR block should be used to create the public subnet in AZ1 (e.g. 172.21.1.64/26)
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{2})"
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x. (e.g. 172.21.1.64/26)
-    Default: 172.21.1.64/26
+#    Default: 172.21.1.64/26
   #ECR
   EcrUri:
     Type: String
@@ -93,7 +93,7 @@ Parameters:
   EcsImage:
     Type: String
     Description: The image to use for a container (e. g. image:tag)
-    Default: my_app_repo:latest
+#    Default: my_app_repo:latest
   EcsCMD:
     Type: String
     Description: The CMD value to pass to the container
@@ -102,25 +102,25 @@ Parameters:
     Description: The desired count of Tasks
     MinValue: 0
     MaxValue: 100
-    Default: 0
+#    Default: 0
   EcsDefaultTaskMinContainerCount:
     Type: Number
     Description: The min count of Tasks
     MinValue: 0
     MaxValue: 100
-    Default: 0
+#    Default: 0
   EcsDefaultTaskMaxContainerCount:
     Type: Number
     Description: The max count of Tasks
     MinValue: 0
     MaxValue: 100
-    Default: 5
+#    Default: 5
   EcsAutScalingTargetValue:
     Type: Number
     Description: The target value for the AutoScaling Metric ALBRequestCountPerTarget
     MinValue: 1
     MaxValue: 100
-    Default: 5
+#    Default: 5
 
 Resources:
   VPC:
