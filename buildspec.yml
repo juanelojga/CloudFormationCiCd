@@ -16,7 +16,7 @@ phases:
   pre_build:
     commands:
       - echo Validating CFN template file... `date`
-      - aws cloudformation validate-template --template-body file://$TEMPLATE_FILE
+      #- aws cloudformation validate-template --template-body file://$TEMPLATE_FILE
       - echo Validatig CFN parameters configfile... `date`
       - jsonlint -q $CONFIG_FILE
   build:
