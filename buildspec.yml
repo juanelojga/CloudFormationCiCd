@@ -22,8 +22,8 @@ phases:
   build:
     commands:
       - echo Package CFN template file... `date`
-      - echo $STACK-NAME-$_VERSION
-      - aws cloudformation package --template-file $TEMPLATE_FILE --s3-bucket $S3_TEMPLATE_BUCKET --s3-prefix $STACK-NAME --output-template-file template.yml
+      - echo $STACK_NAME-$_VERSION
+      - aws cloudformation package --template-file $TEMPLATE_FILE --s3-bucket $S3_TEMPLATE_BUCKET --s3-prefix $STACK_NAME-$_VERSION --output-template-file template.yml
 
 artifacts:
   files:
