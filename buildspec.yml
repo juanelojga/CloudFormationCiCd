@@ -27,5 +27,5 @@ phases:
 artifacts:
   files:
     - template.yml
-    - ECS/configuration.json
+    - ECS/configurations.json
   discard-paths: yes
