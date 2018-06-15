@@ -5,7 +5,7 @@ env:
     S3_TEMPLATE_BUCKET: "cf-templates-1j6auxe2hqnis-eu-west-1"
     STACK_NAME: "ECS-Cluster-Simple-App"
     TEMPLATE_FILE: "ECS/master.yml"
-    CONFIG_FILE: "ECS/configuration.json"
+    CONFIG_FILE: "ECS/configurations.json"
 
 phases:
   install:
@@ -27,5 +27,5 @@ phases:
 artifacts:
   files:
     - template.yml
-    - ECS/configurations.json
+    - $CONFIG_FILE
   discard-paths: yes
