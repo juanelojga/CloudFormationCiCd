@@ -1,6 +1,6 @@
 {
   "Parameters" : {
-    "EcrUri" : "196987642544.dkr.ecreu-west-1.amazonaws.com/simple-app/repo",
+    "EcrUri" : "ACCOUNTID.dkr.ecr.REGION.amazonaws.com/REPOSITORY",
     "EcsAutScalingTargetValue": "5",
     "EcsCMD": "/app",
     "EcsDefaultTaskDesiredContainerCount": "0",

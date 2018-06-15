@@ -2,10 +2,11 @@ version: 0.2
 
 env:
   variables:
-    S3_TEMPLATE_BUCKET: "cf-templates-1j6auxe2hqnis-eu-west-1"
     STACK_NAME: "ECS-Cluster-Simple-App"
     TEMPLATE_FILE: "ECS/master.yml"
     CONFIG_FILE: "ECS/configurations.json"
+  parameter-store:
+    S3_TEMPLATE_BUCKET: CodePipeLine-DemoEcsCluster-S3TemplateBucket
 
 phases:
   install:
