@@ -1,0 +1,29 @@
+{
+  "Parameters" : {
+    "EcrUri" : "ACCOUNTID.dkr.ecr.REGION.amazonaws.com/REPOSITORY",
+    "EcsAutScalingTargetValue": "5",
+    "EcsCMD": "/app",
+    "EcsDefaultTaskDesiredContainerCount": "0",
+    "EcsDefaultTaskMaxContainerCount": "5",
+    "EcsDefaultTaskMinContainerCount": "0",
+    "EcsImage": "simple-app/repo:latest",
+    "EnvironmentName": "dev",
+    "TagPrefix": "SimpleApp",
+    "VpcCIDR": "172.21.1.0/24",
+    "VpcPublicSubnet1": "172.21.1.0/26",
+    "VpcPublicSubnet2": "172.21.1.64/26"
+  },
+  "Tags" : {
+    "Name" : "SimpleApp-dev"
+  },
+  "StackPolicy" : {
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "NotAction" : "Update:Delete",
+        "Principal": "*",
+        "Resource" : "*"
+      }
+    ]
+  }
+}
